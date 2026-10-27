@@ -1,11 +1,13 @@
 
 #include "stm32f4xx_hal.h"
 #include <stdbool.h>
+#include <stdint.h>
 #include "config.h"
 
 
 static void GPIO_Init(void)
 {
+
     GPIO_InitTypeDef gpio = {0};
 
     __HAL_RCC_GPIOA_CLK_ENABLE();
@@ -50,6 +52,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
         {
             last_press = now;
             press = true;
+            LED_STATE_IS ++; 
         }
     }
 }
@@ -58,12 +61,38 @@ int main(void)
 {
     HAL_Init();
     GPIO_Init();
+    HAL_GPIO_WritePin(LED_PORT, LED_PIN, GPIO_PIN_RESET);
 
     while (1)
     {
         if (press)
         {
-            HAL_GPIO_TogglePin(LED_PORT, LED_PIN);
-            press = false;
+            switch (LED_STATE_IS)
+            {
+            case NO_ACTIVE:
+                HAL_GPIO_WritePin(LED_PORT, LED_PIN, GPIO_PIN_RESET);
+
+                break;
+
+            case BLINK:
+            {
+                uint32_t now = HAL_GetTick();
+
+                if (now - last_press > BLINK_TIME_MS)
+                    {
+                        HAL_GPIO_TogglePin(LED_PORT, LED_PIN);
+                        last_press = HAL_GetTick();
+                    }
+                break;
+            }  
+            case ON:
+                HAL_GPIO_WritePin(LED_PORT, LED_PIN, GPIO_PIN_SET);
+                break;
+            
+            default:
+                        LED_STATE_IS = NO_ACTIVE;
+                break;
+            }
         }
+    }
 }
