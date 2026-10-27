@@ -78,10 +78,10 @@ int main(void)
             {
                 uint32_t now = HAL_GetTick();
 
-                if (now - last_press > BLINK_TIME_MS)
+                if (now - last_blink > BLINK_TIME_MS)
                     {
                         HAL_GPIO_TogglePin(LED_PORT, LED_PIN);
-                        last_press = HAL_GetTick();
+                        last_blink = HAL_GetTick();
                     }
                 break;
             }  
